@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 
 interface Complaint {
@@ -55,7 +63,10 @@ export default function ComplaintsPage() {
   const [complaints, setComplaints] = useState<Complaint[]>(mockComplaints);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
+  
+  const itemsPerPage = 5;
 
   const filteredComplaints = complaints.filter(complaint => {
     const matchesSearch = complaint.residentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,6 +76,20 @@ export default function ComplaintsPage() {
     if (activeTab === "all") return matchesSearch;
     return matchesSearch && complaint.status === activeTab;
   });
+
+  const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleTabChange = (value: string) => {
+    setActiveTab(value);
+    setCurrentPage(1);
+  };
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
 
   const handleResolveComplaint = (id: string) => {
     setComplaints(prev => 
@@ -110,13 +135,13 @@ export default function ComplaintsPage() {
         <Input
           placeholder="Search complaints..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="max-w-md"
         />
       </div>
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="all">All ({complaints.length})</TabsTrigger>
           <TabsTrigger value="open">
@@ -129,7 +154,7 @@ export default function ComplaintsPage() {
 
         <TabsContent value={activeTab} className="mt-6">
           <div className="grid gap-4">
-            {filteredComplaints.map((complaint) => (
+            {paginatedComplaints.map((complaint) => (
               <Card 
                 key={complaint.id} 
                 className={`transition-all duration-200 hover:shadow-soft-md ${
@@ -173,6 +198,49 @@ export default function ComplaintsPage() {
               </Card>
             ))}
           </div>
+          
+          {totalPages > 1 && (
+            <Pagination className="mt-6">
+              <PaginationContent>
+                <PaginationItem>
+                  <PaginationPrevious 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage > 1) setCurrentPage(currentPage - 1);
+                    }}
+                    className={currentPage === 1 ? "opacity-50 pointer-events-none" : ""}
+                  />
+                </PaginationItem>
+                
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <PaginationItem key={page}>
+                    <PaginationLink
+                      href="#"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setCurrentPage(page);
+                      }}
+                      isActive={currentPage === page}
+                    >
+                      {page}
+                    </PaginationLink>
+                  </PaginationItem>
+                ))}
+                
+                <PaginationItem>
+                  <PaginationNext 
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                    }}
+                    className={currentPage === totalPages ? "opacity-50 pointer-events-none" : ""}
+                  />
+                </PaginationItem>
+              </PaginationContent>
+            </Pagination>
+          )}
         </TabsContent>
       </Tabs>
 

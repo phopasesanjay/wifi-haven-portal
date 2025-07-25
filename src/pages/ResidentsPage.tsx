@@ -5,6 +5,14 @@ import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { 
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
 
 interface Resident {
@@ -63,7 +71,10 @@ export default function ResidentsPage() {
   const [residents] = useState<Resident[]>(mockResidents);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
+  
+  const itemsPerPage = 5;
 
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -71,9 +82,18 @@ export default function ResidentsPage() {
     resident.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  const totalPages = Math.ceil(filteredResidents.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const paginatedResidents = filteredResidents.slice(startIndex, startIndex + itemsPerPage);
+
+  const handleSearchChange = (value: string) => {
+    setSearchTerm(value);
+    setCurrentPage(1);
+  };
+
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
-      setSelectedResidents(filteredResidents.map(r => r.id));
+      setSelectedResidents(paginatedResidents.map(r => r.id));
     } else {
       setSelectedResidents([]);
     }
@@ -120,7 +140,7 @@ export default function ResidentsPage() {
         <Input
           placeholder="Search residents..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => handleSearchChange(e.target.value)}
           className="max-w-md"
         />
         
@@ -141,18 +161,18 @@ export default function ResidentsPage() {
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <Checkbox
-                checked={selectedResidents.length === filteredResidents.length && filteredResidents.length > 0}
+                checked={selectedResidents.length === paginatedResidents.length && paginatedResidents.length > 0}
                 onCheckedChange={handleSelectAll}
               />
               <span className="text-sm font-medium text-muted-foreground">
-                Select All ({filteredResidents.length} residents)
+                Select All ({paginatedResidents.length} residents on this page)
               </span>
             </div>
           </CardContent>
         </Card>
 
         {/* Residents List */}
-        {filteredResidents.map((resident) => (
+        {paginatedResidents.map((resident) => (
           <Card 
             key={resident.id} 
             className={`transition-all duration-200 hover:shadow-soft-md ${
@@ -204,6 +224,49 @@ export default function ResidentsPage() {
             </CardContent>
           </Card>
         ))}
+        
+        {totalPages > 1 && (
+          <Pagination className="mt-6">
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage > 1) setCurrentPage(currentPage - 1);
+                  }}
+                  className={currentPage === 1 ? "opacity-50 pointer-events-none" : ""}
+                />
+              </PaginationItem>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <PaginationItem key={page}>
+                  <PaginationLink
+                    href="#"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setCurrentPage(page);
+                    }}
+                    isActive={currentPage === page}
+                  >
+                    {page}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              
+              <PaginationItem>
+                <PaginationNext 
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                  }}
+                  className={currentPage === totalPages ? "opacity-50 pointer-events-none" : ""}
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        )}
       </div>
 
       {filteredResidents.length === 0 && (
