@@ -74,7 +74,7 @@ export default function ResidentsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   
-  const itemsPerPage = 5;
+  const itemsPerPage = 3;
 
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||

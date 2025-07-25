@@ -37,17 +37,17 @@ All colors MUST be HSL.
     --ring: 144 31% 56%;
 
     /* Custom WiFi Portal Colors */
-    --sage: 144 31% 56%;
+    --sage: 144 31% 46%;
     --sage-light: 144 31% 86%;
-    --sage-foreground: 144 31% 16%;
+    --sage-foreground: 0 0% 98%;
     
     --sky: 197 71% 52%;
     --sky-light: 197 71% 82%;
     --sky-foreground: 197 71% 12%;
     
-    --success: 142 71% 45%;
+    --success: 142 71% 55%;
     --success-light: 142 71% 85%;
-    --success-foreground: 142 71% 15%;
+    --success-foreground: 0 0% 98%;
     
     --warning: 38 92% 50%;
     --warning-light: 38 92% 85%;

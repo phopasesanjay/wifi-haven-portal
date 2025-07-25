@@ -66,7 +66,7 @@ export default function ComplaintsPage() {
   const [currentPage, setCurrentPage] = useState(1);
   const { toast } = useToast();
   
-  const itemsPerPage = 5;
+  const itemsPerPage = 2;
 
   const filteredComplaints = complaints.filter(complaint => {
     const matchesSearch = complaint.residentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
