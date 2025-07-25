@@ -1,0 +1,205 @@
+import { useState } from "react";
+import { AlertCircle, CheckCircle, Filter, Search } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+
+interface Complaint {
+  id: string;
+  residentName: string;
+  apartmentNo: string;
+  issue: string;
+  status: "open" | "closed";
+  dateCreated: string;
+  priority: "low" | "medium" | "high";
+}
+
+const mockComplaints: Complaint[] = [
+  {
+    id: "1",
+    residentName: "Sarah Johnson",
+    apartmentNo: "12A",
+    issue: "WiFi speed is very slow in bedroom area",
+    status: "open",
+    dateCreated: "2024-01-20",
+    priority: "high"
+  },
+  {
+    id: "2", 
+    residentName: "Mike Chen",
+    apartmentNo: "08B",
+    issue: "Intermittent connection drops during video calls",
+    status: "open",
+    dateCreated: "2024-01-19",
+    priority: "medium"
+  },
+  {
+    id: "3",
+    residentName: "Emma Rodriguez",
+    apartmentNo: "15C",
+    issue: "Unable to connect new smart TV to network",
+    status: "closed",
+    dateCreated: "2024-01-18",
+    priority: "low"
+  },
+  {
+    id: "4",
+    residentName: "David Park",
+    apartmentNo: "05A",
+    issue: "Router keeps disconnecting every few hours",
+    status: "open",
+    dateCreated: "2024-01-17",
+    priority: "high"
+  }
+];
+
+export default function ComplaintsPage() {
+  const [complaints, setComplaints] = useState<Complaint[]>(mockComplaints);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
+  const { toast } = useToast();
+
+  const filteredComplaints = complaints.filter(complaint => {
+    const matchesSearch = complaint.residentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         complaint.apartmentNo.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         complaint.issue.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (activeTab === "all") return matchesSearch;
+    return matchesSearch && complaint.status === activeTab;
+  });
+
+  const handleResolveComplaint = (id: string) => {
+    setComplaints(prev => 
+      prev.map(complaint => 
+        complaint.id === id 
+          ? { ...complaint, status: "closed" as const }
+          : complaint
+      )
+    );
+    
+    toast({
+      title: "Complaint Resolved",
+      description: "The complaint has been marked as resolved.",
+    });
+  };
+
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case "high": return "bg-destructive text-destructive-foreground";
+      case "medium": return "bg-warning text-warning-foreground";
+      default: return "bg-muted text-muted-foreground";
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    return status === "open" ? (
+      <AlertCircle className="w-4 h-4 text-warning" />
+    ) : (
+      <CheckCircle className="w-4 h-4 text-success" />
+    );
+  };
+
+  return (
+    <div className="p-8">
+      {/* Header */}
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold text-foreground mb-2">Complaints Management</h1>
+        <p className="text-muted-foreground">Track and resolve resident WiFi issues</p>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="flex items-center gap-4 mb-6">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search complaints..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10"
+          />
+        </div>
+        <Button variant="outline" size="sm">
+          <Filter className="w-4 h-4 mr-2" />
+          Filter
+        </Button>
+      </div>
+
+      {/* Tabs */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-3">
+          <TabsTrigger value="all">All ({complaints.length})</TabsTrigger>
+          <TabsTrigger value="open">
+            Open ({complaints.filter(c => c.status === "open").length})
+          </TabsTrigger>
+          <TabsTrigger value="closed">
+            Closed ({complaints.filter(c => c.status === "closed").length})
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value={activeTab} className="mt-6">
+          <div className="grid gap-4">
+            {filteredComplaints.map((complaint) => (
+              <Card 
+                key={complaint.id} 
+                className={`transition-all duration-200 hover:shadow-soft-md ${
+                  complaint.status === "open" ? "border-l-4 border-l-warning" : ""
+                }`}
+              >
+                <CardHeader className="pb-3">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-3">
+                      {getStatusIcon(complaint.status)}
+                      <div>
+                        <h3 className="font-medium text-foreground">{complaint.residentName}</h3>
+                        <p className="text-sm text-muted-foreground">Apt {complaint.apartmentNo}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Badge className={getPriorityColor(complaint.priority)}>
+                        {complaint.priority}
+                      </Badge>
+                      <Badge variant={complaint.status === "open" ? "secondary" : "outline"}>
+                        {complaint.status}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-foreground mb-4">{complaint.issue}</p>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">
+                      Created: {new Date(complaint.dateCreated).toLocaleDateString()}
+                    </span>
+                    {complaint.status === "open" && (
+                      <Button 
+                        variant="success" 
+                        size="sm"
+                        onClick={() => handleResolveComplaint(complaint.id)}
+                      >
+                        <CheckCircle className="w-4 h-4 mr-2" />
+                        Mark Resolved
+                      </Button>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {filteredComplaints.length === 0 && (
+        <div className="text-center py-12">
+          <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-foreground mb-2">No complaints found</h3>
+          <p className="text-muted-foreground">
+            {searchTerm ? "Try adjusting your search terms" : "No complaints match the current filter"}
+          </p>
+        </div>
+      )}
+    </div>
+  );
+}
