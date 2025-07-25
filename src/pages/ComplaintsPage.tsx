@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle, Filter, Search } from "lucide-react";
+import { AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -14,7 +14,6 @@ interface Complaint {
   issue: string;
   status: "open" | "closed";
   dateCreated: string;
-  priority: "low" | "medium" | "high";
 }
 
 const mockComplaints: Complaint[] = [
@@ -24,8 +23,7 @@ const mockComplaints: Complaint[] = [
     apartmentNo: "12A",
     issue: "WiFi speed is very slow in bedroom area",
     status: "open",
-    dateCreated: "2024-01-20",
-    priority: "high"
+    dateCreated: "2024-01-20"
   },
   {
     id: "2", 
@@ -33,8 +31,7 @@ const mockComplaints: Complaint[] = [
     apartmentNo: "08B",
     issue: "Intermittent connection drops during video calls",
     status: "open",
-    dateCreated: "2024-01-19",
-    priority: "medium"
+    dateCreated: "2024-01-19"
   },
   {
     id: "3",
@@ -42,8 +39,7 @@ const mockComplaints: Complaint[] = [
     apartmentNo: "15C",
     issue: "Unable to connect new smart TV to network",
     status: "closed",
-    dateCreated: "2024-01-18",
-    priority: "low"
+    dateCreated: "2024-01-18"
   },
   {
     id: "4",
@@ -51,8 +47,7 @@ const mockComplaints: Complaint[] = [
     apartmentNo: "05A",
     issue: "Router keeps disconnecting every few hours",
     status: "open",
-    dateCreated: "2024-01-17",
-    priority: "high"
+    dateCreated: "2024-01-17"
   }
 ];
 
@@ -110,21 +105,14 @@ export default function ComplaintsPage() {
         <p className="text-muted-foreground">Track and resolve resident WiFi issues</p>
       </div>
 
-      {/* Search and Filters */}
-      <div className="flex items-center gap-4 mb-6">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search complaints..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Button variant="outline" size="sm">
-          <Filter className="w-4 h-4 mr-2" />
-          Filter
-        </Button>
+      {/* Search */}
+      <div className="mb-6">
+        <Input
+          placeholder="Search complaints..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md"
+        />
       </div>
 
       {/* Tabs */}
@@ -158,9 +146,6 @@ export default function ComplaintsPage() {
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Badge className={getPriorityColor(complaint.priority)}>
-                        {complaint.priority}
-                      </Badge>
                       <Badge variant={complaint.status === "open" ? "secondary" : "outline"}>
                         {complaint.status}
                       </Badge>
