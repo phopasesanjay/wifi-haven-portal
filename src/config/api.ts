@@ -5,6 +5,7 @@ export const API_CONFIG = {
     sendEmailToUser: '/api/sendEmailToUser',
     getAllComplaints: '/api/getAllComplaints',
     getAllUsers: '/api/getAllUsers',
+    resolveComplaint: '/api/resolveComplaint',
   }
 };
 

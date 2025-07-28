@@ -91,9 +91,13 @@ export async function getAllComplaints(params: ApiQueryParams): Promise<ApiRespo
   });
 }
 
-// Mark Complaint as Resolved (you might need this later)
-export async function markComplaintResolved(complaintId: string): Promise<void> {
-  // Implementation depends on your backend API for updating complaints
-  // For now, this is a placeholder
-  console.log(`Marking complaint ${complaintId} as resolved`);
+// Resolve Complaint API
+export async function resolveComplaint(complaintUId: string): Promise<void> {
+  const url = getApiUrl(API_CONFIG.endpoints.resolveComplaint);
+  const payload = { complaintUId };
+
+  await apiRequest(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }

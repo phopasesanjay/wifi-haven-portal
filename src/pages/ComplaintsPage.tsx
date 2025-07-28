@@ -14,7 +14,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
-import { getAllComplaints, getAllUsers, ApiError } from "@/services/api";
+import { getAllComplaints, getAllUsers, resolveComplaint, ApiError } from "@/services/api";
 import type { Complaint as ApiComplaint, User } from "@/types/api";
 
 interface Complaint {
@@ -131,7 +131,6 @@ export default function ComplaintsPage() {
   });
 
   const totalPages = Math.ceil(totalItems / itemsPerPage);
-  const paginatedComplaints = searchTerm ? filteredComplaints : complaints;
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -143,19 +142,30 @@ export default function ComplaintsPage() {
     setCurrentPage(1);
   };
 
-  const handleResolveComplaint = (id: string) => {
-    setComplaints(prev => 
-      prev.map(complaint => 
-        complaint.id === id 
-          ? { ...complaint, status: "closed" as const }
-          : complaint
-      )
-    );
-    
-    toast({
-      title: "Complaint Resolved",
-      description: "The complaint has been marked as resolved.",
-    });
+  const handleResolveComplaint = async (id: string) => {
+    try {
+      await resolveComplaint(id);
+      
+      setComplaints(prev => 
+        prev.map(complaint => 
+          complaint.id === id 
+            ? { ...complaint, status: "closed" as const }
+            : complaint
+        )
+      );
+      
+      toast({
+        title: "Complaint Resolved",
+        description: "The complaint has been marked as resolved.",
+      });
+    } catch (error) {
+      console.error('Failed to resolve complaint:', error);
+      toast({
+        title: "Error",
+        description: "Failed to resolve complaint. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const getPriorityColor = (priority: string) => {
@@ -217,7 +227,7 @@ export default function ComplaintsPage() {
 
         <TabsContent value={activeTab} className="mt-6">
           <div className="grid gap-4">
-            {paginatedComplaints.map((complaint) => (
+            {filteredComplaints.map((complaint) => (
               <Card 
                 key={complaint.id} 
                 className={`transition-all duration-200 hover:shadow-soft-md ${
