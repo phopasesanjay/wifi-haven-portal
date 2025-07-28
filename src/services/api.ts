@@ -63,20 +63,32 @@ export async function sendEmailToUser(emails: string[]): Promise<void> {
 
 // Get All Users API
 export async function getAllUsers(params: ApiQueryParams): Promise<ApiResponse<User>> {
-  const url = new URL(getApiUrl(API_CONFIG.endpoints.getAllUsers));
-  url.searchParams.append('page', params.page.toString());
-  url.searchParams.append('pageSize', params.pageSize.toString());
+  const url = getApiUrl(API_CONFIG.endpoints.getAllUsers);
+  const payload = {
+    data: [],
+    page: params.page,
+    pageSize: params.pageSize
+  };
 
-  return apiRequest<ApiResponse<User>>(url.toString());
+  return apiRequest<ApiResponse<User>>(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 // Get All Complaints API
 export async function getAllComplaints(params: ApiQueryParams): Promise<ApiResponse<Complaint>> {
-  const url = new URL(getApiUrl(API_CONFIG.endpoints.getAllComplaints));
-  url.searchParams.append('page', params.page.toString());
-  url.searchParams.append('pageSize', params.pageSize.toString());
+  const url = getApiUrl(API_CONFIG.endpoints.getAllComplaints);
+  const payload = {
+    data: [],
+    page: params.page,
+    pageSize: params.pageSize
+  };
 
-  return apiRequest<ApiResponse<Complaint>>(url.toString());
+  return apiRequest<ApiResponse<Complaint>>(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
 }
 
 // Mark Complaint as Resolved (you might need this later)
