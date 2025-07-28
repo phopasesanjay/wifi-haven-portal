@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Search, Send, User, Mail, Wifi } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Send, UserIcon, Mail, Wifi, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,6 +14,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
+import { getAllUsers, sendEmailToUser, ApiError } from "@/services/api";
+import type { User } from "@/types/api";
 
 interface Resident {
   id: string;
@@ -68,13 +70,54 @@ const mockResidents: Resident[] = [
 ];
 
 export default function ResidentsPage() {
-  const [residents] = useState<Resident[]>(mockResidents);
+  const [residents, setResidents] = useState<Resident[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedResidents, setSelectedResidents] = useState<string[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
+  const [sendingEmails, setSendingEmails] = useState(false);
   const { toast } = useToast();
   
-  const itemsPerPage = 3;
+  const itemsPerPage = 10;
+
+  // Convert API User to Resident format
+  const convertUserToResident = (user: User): Resident => ({
+    id: user.userUId,
+    name: `${user.firstName} ${user.lastName}`,
+    apartmentNo: user.apartmentNo,
+    email: user.email,
+    routerId: `RT-${user.apartmentNo}-${user.userUId.slice(-3)}`,
+    lastSpeedTest: null // API doesn't provide this yet
+  });
+
+  // Load residents from API
+  useEffect(() => {
+    const loadResidents = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllUsers({
+          page: currentPage,
+          pageSize: itemsPerPage
+        });
+        
+        const convertedResidents = response.data.map(convertUserToResident);
+        setResidents(convertedResidents);
+        setTotalItems(response.data.length); // Adjust based on actual total from API
+      } catch (error) {
+        console.error('Failed to load residents:', error);
+        toast({
+          title: "Error loading residents",
+          description: "Failed to fetch residents from server. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadResidents();
+  }, [currentPage, toast]);
 
   const filteredResidents = residents.filter(resident =>
     resident.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -82,9 +125,8 @@ export default function ResidentsPage() {
     resident.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const totalPages = Math.ceil(filteredResidents.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedResidents = filteredResidents.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedResidents = searchTerm ? filteredResidents : residents;
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
@@ -107,7 +149,7 @@ export default function ResidentsPage() {
     }
   };
 
-  const handleSendSpeedTestLinks = () => {
+  const handleSendSpeedTestLinks = async () => {
     const selectedCount = selectedResidents.length;
     if (selectedCount === 0) {
       toast({
@@ -118,13 +160,32 @@ export default function ResidentsPage() {
       return;
     }
 
-    // Simulate sending emails
-    toast({
-      title: "Speed test links sent!",
-      description: `Successfully sent speed test links to ${selectedCount} resident${selectedCount > 1 ? 's' : ''}.`,
-    });
-    
-    setSelectedResidents([]);
+    try {
+      setSendingEmails(true);
+      
+      // Get selected resident emails
+      const selectedEmails = residents
+        .filter(resident => selectedResidents.includes(resident.id))
+        .map(resident => resident.email);
+
+      await sendEmailToUser(selectedEmails);
+      
+      toast({
+        title: "Speed test links sent!",
+        description: `Successfully sent speed test links to ${selectedCount} resident${selectedCount > 1 ? 's' : ''}.`,
+      });
+      
+      setSelectedResidents([]);
+    } catch (error) {
+      console.error('Failed to send emails:', error);
+      toast({
+        title: "Failed to send emails",
+        description: error instanceof ApiError ? error.message : "An unexpected error occurred.",
+        variant: "destructive"
+      });
+    } finally {
+      setSendingEmails(false);
+    }
   };
 
   return (
@@ -147,15 +208,24 @@ export default function ResidentsPage() {
         <Button 
           variant="sage" 
           onClick={handleSendSpeedTestLinks}
-          disabled={selectedResidents.length === 0}
+          disabled={selectedResidents.length === 0 || sendingEmails}
         >
           <Send className="w-4 h-4 mr-2" />
-          Send Speed Test Link ({selectedResidents.length})
+          {sendingEmails ? "Sending..." : `Send Speed Test Link (${selectedResidents.length})`}
         </Button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading residents...</p>
+        </div>
+      )}
+
       {/* Residents Grid */}
-      <div className="grid gap-4">
+      {!loading && (
+        <div className="grid gap-4">
         {/* Select All Header */}
         <Card className="bg-muted/30">
           <CardContent className="p-4">
@@ -188,7 +258,7 @@ export default function ResidentsPage() {
                   />
                   
                   <div className="w-12 h-12 bg-gradient-primary rounded-full flex items-center justify-center">
-                    <User className="w-6 h-6 text-white" />
+                    <UserIcon className="w-6 h-6 text-white" />
                   </div>
                   
                   <div className="space-y-1">
@@ -267,11 +337,12 @@ export default function ResidentsPage() {
             </PaginationContent>
           </Pagination>
         )}
-      </div>
+        </div>
+      )}
 
-      {filteredResidents.length === 0 && (
+      {!loading && filteredResidents.length === 0 && (
         <div className="text-center py-12">
-          <User className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
+          <UserIcon className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No residents found</h3>
           <p className="text-muted-foreground">
             {searchTerm ? "Try adjusting your search terms" : "No residents match the current filter"}

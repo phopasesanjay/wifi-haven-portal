@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AlertCircle, CheckCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { useToast } from "@/hooks/use-toast";
+import { getAllComplaints, getAllUsers, ApiError } from "@/services/api";
+import type { Complaint as ApiComplaint, User } from "@/types/api";
 
 interface Complaint {
   id: string;
@@ -60,13 +62,64 @@ const mockComplaints: Complaint[] = [
 ];
 
 export default function ComplaintsPage() {
-  const [complaints, setComplaints] = useState<Complaint[]>(mockComplaints);
+  const [complaints, setComplaints] = useState<Complaint[]>([]);
+  const [users, setUsers] = useState<User[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalItems, setTotalItems] = useState(0);
   const { toast } = useToast();
   
-  const itemsPerPage = 2;
+  const itemsPerPage = 10;
+
+  // Convert API Complaint to local Complaint format
+  const convertApiComplaintToLocal = (apiComplaint: ApiComplaint, users: User[]): Complaint => {
+    const user = users.find(u => u.userUId === apiComplaint.userUId);
+    return {
+      id: apiComplaint.complaintUId,
+      residentName: user ? `${user.firstName} ${user.lastName}` : 'Unknown Resident',
+      apartmentNo: apiComplaint.appartmentNo,
+      issue: apiComplaint.description,
+      status: apiComplaint.isResolved ? "closed" : "open",
+      dateCreated: apiComplaint.createdAt.split('T')[0] // Extract date part
+    };
+  };
+
+  // Load data from APIs
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        
+        // Fetch both complaints and users in parallel
+        const [complaintsResponse, usersResponse] = await Promise.all([
+          getAllComplaints({ page: currentPage, pageSize: itemsPerPage }),
+          getAllUsers({ page: 1, pageSize: 1000 }) // Get all users for mapping
+        ]);
+        
+        setUsers(usersResponse.data);
+        
+        const convertedComplaints = complaintsResponse.data.map(complaint => 
+          convertApiComplaintToLocal(complaint, usersResponse.data)
+        );
+        
+        setComplaints(convertedComplaints);
+        setTotalItems(complaintsResponse.data.length);
+      } catch (error) {
+        console.error('Failed to load data:', error);
+        toast({
+          title: "Error loading complaints",
+          description: "Failed to fetch complaints from server. Please try again.",
+          variant: "destructive"
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+  }, [currentPage, toast]);
 
   const filteredComplaints = complaints.filter(complaint => {
     const matchesSearch = complaint.residentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -77,9 +130,8 @@ export default function ComplaintsPage() {
     return matchesSearch && complaint.status === activeTab;
   });
 
-  const totalPages = Math.ceil(filteredComplaints.length / itemsPerPage);
-  const startIndex = (currentPage - 1) * itemsPerPage;
-  const paginatedComplaints = filteredComplaints.slice(startIndex, startIndex + itemsPerPage);
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const paginatedComplaints = searchTerm ? filteredComplaints : complaints;
 
   const handleTabChange = (value: string) => {
     setActiveTab(value);
@@ -130,18 +182,29 @@ export default function ComplaintsPage() {
         <p className="text-muted-foreground">Track and resolve resident WiFi issues</p>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="text-center py-12">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-sage mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading complaints...</p>
+        </div>
+      )}
+
       {/* Search */}
-      <div className="mb-6">
-        <Input
-          placeholder="Search complaints..."
-          value={searchTerm}
-          onChange={(e) => handleSearchChange(e.target.value)}
-          className="max-w-md"
-        />
-      </div>
+      {!loading && (
+        <div className="mb-6">
+          <Input
+            placeholder="Search complaints..."
+            value={searchTerm}
+            onChange={(e) => handleSearchChange(e.target.value)}
+            className="max-w-md"
+          />
+        </div>
+      )}
 
       {/* Tabs */}
-      <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
+      {!loading && (
+        <Tabs value={activeTab} onValueChange={handleTabChange} className="w-full">
         <TabsList className="grid w-full max-w-md grid-cols-3">
           <TabsTrigger value="all">All ({complaints.length})</TabsTrigger>
           <TabsTrigger value="open">
@@ -242,9 +305,10 @@ export default function ComplaintsPage() {
             </Pagination>
           )}
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      )}
 
-      {filteredComplaints.length === 0 && (
+      {!loading && filteredComplaints.length === 0 && (
         <div className="text-center py-12">
           <AlertCircle className="w-12 h-12 text-muted-foreground mx-auto mb-4" />
           <h3 className="text-lg font-medium text-foreground mb-2">No complaints found</h3>
