@@ -105,8 +105,7 @@ export default function ComplaintsPage() {
         );
         
         setComplaints(convertedComplaints);
-        // For now, simulate more items to ensure pagination shows
-        setTotalItems(Math.max(complaintsResponse.data.length, 25));
+        setTotalItems(complaintsResponse.data.length);
       } catch (error) {
         console.error('Failed to load data:', error);
         toast({

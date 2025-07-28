@@ -103,8 +103,7 @@ export default function ResidentsPage() {
         
         const convertedResidents = response.data.map(convertUserToResident);
         setResidents(convertedResidents);
-        // For now, simulate more items to ensure pagination shows
-        setTotalItems(Math.max(response.data.length, 25));
+        setTotalItems(response.data.length);
       } catch (error) {
         console.error('Failed to load residents:', error);
         toast({
