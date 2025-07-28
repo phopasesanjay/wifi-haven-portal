@@ -279,17 +279,6 @@ export default function ResidentsPage() {
                     </div>
                   </div>
                 </div>
-                
-                <div className="text-right">
-                  <div className="text-sm text-muted-foreground mb-1">Last Speed Test</div>
-                  {resident.lastSpeedTest ? (
-                    <Badge variant="secondary">
-                      {new Date(resident.lastSpeedTest).toLocaleDateString()}
-                    </Badge>
-                  ) : (
-                    <Badge variant="outline">Never tested</Badge>
-                  )}
-                </div>
               </div>
             </CardContent>
           </Card>
