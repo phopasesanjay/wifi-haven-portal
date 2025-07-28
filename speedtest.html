@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Internet Speed Test</title>
+    <script type="module" crossorigin>
+      // Import and render the standalone speed test component
+      import React from 'react';
+      import ReactDOM from 'react-dom/client';
+      import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+      import { TooltipProvider } from './src/components/ui/tooltip';
+      import { Toaster } from './src/components/ui/toaster';
+      import { Toaster as Sonner } from './src/components/ui/sonner';
+      import StandaloneSpeedTest from './src/pages/StandaloneSpeedTest';
+      import './src/index.css';
+
+      const queryClient = new QueryClient();
+
+      const SpeedTestApp = () => (
+        React.createElement(QueryClientProvider, { client: queryClient },
+          React.createElement(TooltipProvider, {},
+            React.createElement(Toaster),
+            React.createElement(Sonner),
+            React.createElement(StandaloneSpeedTest)
+          )
+        )
+      );
+
+      ReactDOM.createRoot(document.getElementById('root')).render(
+        React.createElement(React.StrictMode, {},
+          React.createElement(SpeedTestApp)
+        )
+      );
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
