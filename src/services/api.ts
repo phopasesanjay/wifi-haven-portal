@@ -4,7 +4,10 @@ import type {
   User, 
   Complaint, 
   SendEmailRequest, 
-  ApiQueryParams 
+  ApiQueryParams,
+  CreateComplaintRequest,
+  SubmitSpeedRecordRequest,
+  ApiSuccessResponse
 } from '@/types/api';
 
 // Generic API error class
@@ -97,6 +100,26 @@ export async function resolveComplaint(complaintUId: string): Promise<void> {
   const payload = { complaintUId };
 
   await apiRequest(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+// Create Complaint API
+export async function createComplaint(payload: CreateComplaintRequest): Promise<ApiSuccessResponse> {
+  const url = getApiUrl(API_CONFIG.endpoints.createComplaint);
+
+  return apiRequest<ApiSuccessResponse>(url, {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  });
+}
+
+// Submit Speed Record API
+export async function submitSpeedRecord(payload: SubmitSpeedRecordRequest): Promise<ApiSuccessResponse> {
+  const url = getApiUrl(API_CONFIG.endpoints.submitSpeedRecord);
+
+  return apiRequest<ApiSuccessResponse>(url, {
     method: 'POST',
     body: JSON.stringify(payload),
   });

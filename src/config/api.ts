@@ -6,6 +6,8 @@ export const API_CONFIG = {
     getAllComplaints: '/api/getAllComplaints',
     getAllUsers: '/api/getAllUsers',
     resolveComplaint: '/api/resolveComplaint',
+    createComplaint: '/api/createComplaint',
+    submitSpeedRecord: '/api/submitSpeedRecord',
   }
 };
 

@@ -1,5 +1,5 @@
 import { NavLink } from "react-router-dom";
-import { AlertTriangle, Users, Wifi } from "lucide-react";
+import { AlertTriangle, Users, Wifi, Gauge } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navItems = [
@@ -14,6 +14,12 @@ const navItems = [
     href: "/residents",
     icon: Users,
     description: "Resident management"
+  },
+  {
+    title: "Speed Test",
+    href: "/speed-test",
+    icon: Gauge,
+    description: "Test internet speed"
   }
 ];
 

@@ -39,3 +39,24 @@ export interface ApiQueryParams {
   page: number;
   pageSize: number;
 }
+
+// Create Complaint Request Type
+export interface CreateComplaintRequest {
+  email: string;
+  appartmentNo: string;
+  description: string;
+}
+
+// Submit Speed Record Request Type
+export interface SubmitSpeedRecordRequest {
+  email: string;
+  downloadMbps: number;
+  uploadMbps: number;
+  pingMs: number;
+}
+
+// Standard API Success Response
+export interface ApiSuccessResponse {
+  success: boolean;
+  body: string;
+}
