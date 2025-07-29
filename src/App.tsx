@@ -7,6 +7,10 @@ import { Layout } from "./components/Layout";
 import ComplaintsPage from "./pages/ComplaintsPage";
 import ResidentsPage from "./pages/ResidentsPage";
 import NotFound from "./pages/NotFound";
+import StandaloneSpeedTest from "./pages/StandaloneSpeedTest";
+import SpeedTest from "./components/SpeedTest";
+import SpeedTest2 from "./components/SpeedTest copy";
+import StandaloneSpeedTest2 from "./components/SpeedTest copy";
 
 const queryClient = new QueryClient();
 
@@ -21,6 +25,8 @@ const App = () => (
             <Route index element={<ComplaintsPage />} />
             <Route path="residents" element={<ResidentsPage />} />
           </Route>
+            <Route path="speed-test" element={<StandaloneSpeedTest />} />
+            <Route path="speed-test2" element={<StandaloneSpeedTest2 />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
