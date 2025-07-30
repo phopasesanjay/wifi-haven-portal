@@ -11,6 +11,7 @@ import StandaloneSpeedTest from "./pages/StandaloneSpeedTest";
 import SpeedTest from "./components/SpeedTest";
 import SpeedTest2 from "./components/SpeedTest copy";
 import StandaloneSpeedTest2 from "./components/SpeedTest copy";
+import MinimalSpeedTest from "./components/MinimalSpeedTest";
 
 const queryClient = new QueryClient();
 
@@ -25,8 +26,9 @@ const App = () => (
             <Route index element={<ComplaintsPage />} />
             <Route path="residents" element={<ResidentsPage />} />
           </Route>
-            <Route path="speed-test" element={<StandaloneSpeedTest />} />
-            <Route path="speed-test2" element={<StandaloneSpeedTest2 />} />
+                      <Route path="speed-test" element={<StandaloneSpeedTest />} />
+          <Route path="speed-test2" element={<StandaloneSpeedTest2 />} />
+          <Route path="minimal-speed-test" element={<MinimalSpeedTest />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
