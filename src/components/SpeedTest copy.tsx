@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,9 +18,13 @@ interface SpeedTestResult {
 }
 
 const StandaloneSpeedTest2 = () => {
+  const [searchParams] = useSearchParams();
   const [isRunningTest, setIsRunningTest] = useState(false);
   const [testResult, setTestResult] = useState<SpeedTestResult | null>(null);
-  const [email, setEmail] = useState("");
+  
+  // Get email from URL parameters
+  const email = searchParams.get('email') || '';
+  const userId = searchParams.get('userId') || '';
 
   const [complaintEmail, setComplaintEmail] = useState("");
   const [apartmentNo, setApartmentNo] = useState("");
@@ -93,6 +98,18 @@ const StandaloneSpeedTest2 = () => {
     }
   }, [testResult, email, toast, isRunningTest]);
 
+  // Auto-start test when component mounts
+  useEffect(() => {
+    if (email) {
+      // Small delay to ensure page is fully loaded
+      const timer = setTimeout(() => {
+        handleStartTest();
+      }, 1000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [email]);
+
   const submitComplaint = async () => {
     if (!complaintEmail || !apartmentNo || !complaintDescription) {
       toast({
@@ -149,25 +166,19 @@ const StandaloneSpeedTest2 = () => {
       </div>
 
       <div className="container mx-auto p-6 space-y-6 max-w-4xl">
-        <Card>
-          <CardHeader>
-            <CardTitle>Your Email</CardTitle>
-            <CardDescription>Provide your email to automatically save test results</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              <Label htmlFor="email">Email Address</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="your.email@example.com"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="max-w-md"
-              />
-            </div>
-          </CardContent>
-        </Card>
+        {!email && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Missing Email</CardTitle>
+              <CardDescription>Email parameter is required to run the speed test</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center p-4 bg-red-50 border border-red-200 rounded-lg">
+                <p className="text-red-700">Please provide an email parameter in the URL (e.g., ?email=user@example.com)</p>
+              </div>
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
@@ -182,7 +193,7 @@ const StandaloneSpeedTest2 = () => {
               <Button onClick={handleStartTest} disabled={isRunningTest || !email} size="lg" className="min-w-[200px]">
                 {isRunningTest ? "Testing..." : "Start Speed Test"}
               </Button>
-              {!email && <p className="text-sm text-muted-foreground mt-2">Please enter your email first</p>}
+              {email && <p className="text-sm text-muted-foreground mt-2">Testing for: {email}</p>}
             </div>
 
             {isRunningTest && (
