@@ -15,10 +15,14 @@ export const useLibreSpeedTest = (onUpdate, onComplete) => {
       test._overrideWorkerPath = "/librespeed/speedtest_worker.js";
 
       // Override all URLs explicitly
-test.setParameter("url_dl", "http://localhost:9090/backend/garbage.php");
-test.setParameter("url_ul", "http://localhost:9090/backend/empty.php");
-test.setParameter("url_ping", "http://localhost:9090/backend/empty.php");
-test.setParameter("url_getIp", "http://localhost:9090/backend/getIP.php");
+// test.setParameter("url_dl", "http://localhost:3000/user/garbage");
+// test.setParameter("url_ul", "http://localhost:3000/user/empty");
+// test.setParameter("url_ping", "http://localhost:3000/user/empty");
+// test.setParameter("url_getIp", "http://localhost:3000/user/getip");
+test.setParameter("url_dl", "https://staging-userapi.vacay4me.com/user/garbage");
+test.setParameter("url_ul", "https://staging-userapi.vacay4me.com/user/empty");
+test.setParameter("url_ping", "https://staging-userapi.vacay4me.com/user/empty");
+test.setParameter("url_getIp", "https://staging-userapi.vacay4me.com/user/getip");
 
 
       test.onupdate = (data) => {
